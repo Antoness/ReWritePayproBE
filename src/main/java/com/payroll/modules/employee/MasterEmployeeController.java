@@ -45,7 +45,7 @@ public class MasterEmployeeController {
         return ResponseEntity.ok(masterEmployeeService.findEmployeeData(search, division, unit, position, employeeType, branch, status, nationality, page, size));
     }
 
-    @GetMapping("/wna-data")
+    @GetMapping("/wna-list")
     public ResponseEntity<Page<WnaResponse>> getWnaData(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String division,
@@ -63,7 +63,7 @@ public class MasterEmployeeController {
         return ResponseEntity.ok(masterEmployeeService.findWnaData(search, division, unit, position, employeeType, branch, page, size, userPosition));
     }
 
-    @GetMapping("/tax-data")
+    @GetMapping("/tax")
     public ResponseEntity<Page<EmployeeResponse>> getTaxData(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String division,
@@ -78,7 +78,7 @@ public class MasterEmployeeController {
         return ResponseEntity.ok(masterEmployeeService.findTaxData(search, division, unit, position, employeeType, branch, statusEmployee, page, size));
     }
 
-    @GetMapping("/tax-history")
+    @GetMapping("/tax/history")
     public ResponseEntity<Page<TaxHistoryResponse>> getTaxHistory(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
@@ -133,6 +133,49 @@ public class MasterEmployeeController {
     @GetMapping("/request-data")
     public ResponseEntity<List<Employee>> getRequestData() {
         return ResponseEntity.ok(masterEmployeeService.getRequestDataList());
+    }
+
+    @GetMapping("/validate-sync")
+    public ResponseEntity<Map<String, Object>> validateSync() {
+        List<Employee> requests = masterEmployeeService.getRequestDataList();
+        return ResponseEntity.ok(Map.of(
+            "hasRequest", !requests.isEmpty(),
+            "data", requests
+        ));
+    }
+
+    @GetMapping("/download-template")
+    public ResponseEntity<byte[]> downloadTemplate(@RequestParam("type") String type) {
+        try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.hssf.usermodel.HSSFWorkbook()) {
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Template " + type);
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            
+            if ("WNA".equalsIgnoreCase(type)) {
+                headerRow.createCell(0).setCellValue("NIK");
+                headerRow.createCell(1).setCellValue("Passport Number");
+                headerRow.createCell(2).setCellValue("Kitas Number");
+                headerRow.createCell(3).setCellValue("Tanggal Izin Kerja");
+                headerRow.createCell(4).setCellValue("Kode Negara");
+            } else if ("NPWP".equalsIgnoreCase(type)) {
+                headerRow.createCell(0).setCellValue("NIK");
+                headerRow.createCell(1).setCellValue("NPWP");
+            } else if ("ID TKU".equalsIgnoreCase(type)) {
+                headerRow.createCell(0).setCellValue("NIK");
+                headerRow.createCell(1).setCellValue("ID TKU");
+            } else if ("PAJAK".equalsIgnoreCase(type)) {
+                headerRow.createCell(0).setCellValue("NIK");
+                headerRow.createCell(1).setCellValue("Metode Pajak");
+                headerRow.createCell(2).setCellValue("Komponen Project");
+            }
+
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            workbook.write(out);
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=Template_" + type + ".xls");
+            return new org.springframework.http.ResponseEntity<>(out.toByteArray(), headers, org.springframework.http.HttpStatus.OK);
+        } catch (java.io.IOException e) {
+            return org.springframework.http.ResponseEntity.internalServerError().build();
+        }
     }
 
     @PutMapping("/{nik}")

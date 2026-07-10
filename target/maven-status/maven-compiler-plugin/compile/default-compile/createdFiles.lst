@@ -9,6 +9,7 @@ com/payroll/modules/umk/MasterUmk.class
 com/payroll/modules/employee/MasterEmployeeRepository.class
 com/payroll/modules/employee/WnaResponse.class
 com/payroll/modules/audit/AuditLog.class
+com/payroll/modules/client/MasterPic.class
 com/payroll/modules/ptkp/MasterPtkpService.class
 com/payroll/modules/payroll/PayrollComponent$PayrollComponentBuilder.class
 com/payroll/modules/auth/AuthResponse.class

@@ -20,7 +20,7 @@ public class MasterClientService {
     private void appendSearchFilters(StringBuilder sql, MasterClientSearchRequest request, List<Object> params) {
         if (request.getSearch() != null && !request.getSearch().trim().isEmpty()) {
             String search = "%" + request.getSearch().trim() + "%";
-            sql.append(" AND (ms.division LIKE ? OR ms.unit_name LIKE ? OR ms.position LIKE ? OR ms.branch LIKE ? OR ms.employee_type LIKE ? OR ms.approval LIKE ? OR monthname(STR_TO_DATE(ms.periode_payroll,'%m')) LIKE ?) ");
+            sql.append(" AND (ms.division LIKE ? OR ms.unit_name LIKE ? OR ms.position LIKE ? OR ms.branch LIKE ? OR ms.employee_type LIKE ? OR ms.approval LIKE ? OR ms.periode_payroll LIKE ?) ");
             for (int i = 0; i < 7; i++) params.add(search);
         }
         if (request.getDivision() != null && !request.getDivision().trim().isEmpty()) {
@@ -47,14 +47,14 @@ public class MasterClientService {
 
     public List<MasterClientResponseDTO> getStaffList(Long userId, String fullname, MasterClientSearchRequest request) {
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT DISTINCT ms.id, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, ");
-        sql.append("ms.employee_type AS Employee_Type, DATE_FORMAT(ms.created_date,'%d/%m/%Y') AS Created_Date, DATE_FORMAT(ms.update_date,'%d/%m/%Y') AS Update_Date, ");
+        sql.append("SELECT DISTINCT ms.id, ms.created_date, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, ");
+        sql.append("ms.employee_type AS Employee_Type, TO_CHAR(ms.created_date, 'DD/MM/YYYY') AS Created_Date, TO_CHAR(ms.update_date, 'DD/MM/YYYY') AS Update_Date, ");
         sql.append("ms.created_by AS Created_By, ms.approval AS Status ");
         sql.append("FROM master_salary ms ");
         sql.append("LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("LEFT JOIN master_pic mp ON mp.master_salary_id = ms.id ");
         sql.append("WHERE ((ms.id_user = ? AND ms.approval = 'REQUEST') ");
-        sql.append("OR (mp.user = ? AND ms.approval = 'APPROVED') ");
+        sql.append("OR (mp.\"user\" = ? AND ms.approval = 'APPROVED') ");
         sql.append("OR (ms.pic = ? AND ms.approval = 'APPROVED')) ");
         sql.append("AND (ms.approval != 'DONE') ");
 
@@ -86,7 +86,7 @@ public class MasterClientService {
             sql.append("WHERE 1=1 ");
         }
         
-        sql.append("AND (ms.id_user = ? OR mp.user = ? OR (ms.created_by = ? AND ms.approval = 'APPROVED')) ");
+        sql.append("AND (ms.id_user = ? OR mp.\"user\" = ? OR (ms.created_by = ? AND ms.approval = 'APPROVED')) ");
         sql.append("AND (ms.approval != 'DONE') ");
         
         params.add(userId);
@@ -104,9 +104,9 @@ public class MasterClientService {
         if (ids == null || ids.isEmpty()) return new ArrayList<>();
         
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT @NO := CAST(@NO + 1 AS UNSIGNED) AS No, ");
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ");
         sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
-        sql.append("FROM master_salary ms LEFT JOIN users u ON u.id = ms.id_user, (SELECT @NO := 0) AS nomor ");
+        sql.append("FROM master_salary ms LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("WHERE ms.id IN (");
         
         String inSql = ids.stream().map(id -> "?").collect(Collectors.joining(","));
@@ -118,9 +118,9 @@ public class MasterClientService {
 
     public List<MasterClientResponseDTO> getSpvList(MasterClientSearchRequest request) {
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT DISTINCT ms.id, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, ");
-        sql.append("ms.employee_type AS Employee_Type, DATE_FORMAT(ms.created_date,'%d/%m/%Y') AS Created_Date, DATE_FORMAT(ms.update_date,'%d/%m/%Y') AS Update_Date, ");
-        sql.append("ms.created_by AS Created_By, ms.approval AS Status, IF(ms.approval='REQUEST', ms.keterangan, '') AS Keterangan ");
+        sql.append("SELECT DISTINCT ms.id, ms.created_date, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, ");
+        sql.append("ms.employee_type AS Employee_Type, TO_CHAR(ms.created_date, 'DD/MM/YYYY') AS Created_Date, TO_CHAR(ms.update_date, 'DD/MM/YYYY') AS Update_Date, ");
+        sql.append("ms.created_by AS Created_By, ms.approval AS Status, CASE WHEN ms.approval='REQUEST' THEN ms.keterangan ELSE '' END AS Keterangan ");
         sql.append("FROM master_salary ms ");
         sql.append("WHERE (ms.approval = 'REQUEST' OR ms.approval = 'APPROVED' OR ms.approval = 'PROCESSED') ");
 
@@ -134,10 +134,10 @@ public class MasterClientService {
 
     public List<MasterClientResponseDTO> getSpvExportByFilter(String fullname, MasterClientSearchRequest request) {
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT @NO := CAST(@NO + 1 AS UNSIGNED) AS No, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
         sql.append("FROM master_salary ms ");
         sql.append("LEFT JOIN users u ON u.id = ms.id_user ");
-        sql.append("LEFT JOIN master_upliner mup ON u.nik = mup.nik, (SELECT @NO := 0) AS nomor ");
+        sql.append("LEFT JOIN master_upliner mup ON u.nik = mup.nik ");
         
         List<Object> params = new ArrayList<>();
         if (request.getDivision() != null && !request.getDivision().isEmpty()) {
@@ -164,9 +164,9 @@ public class MasterClientService {
         if (ids == null || ids.isEmpty()) return new ArrayList<>();
         
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT @NO := CAST(@NO + 1 AS UNSIGNED) AS No, ");
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ");
         sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
-        sql.append("FROM master_salary ms LEFT JOIN users u ON u.id = ms.id_user, (SELECT @NO := 0) AS nomor ");
+        sql.append("FROM master_salary ms LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("WHERE ms.id IN (");
         
         String inSql = ids.stream().map(id -> "?").collect(Collectors.joining(","));
