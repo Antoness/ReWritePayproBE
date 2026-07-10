@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: payroll-backend
+  datasource:
+    # URL menggunakan nama container 'postgres_db' yang akan kita buat di docker-compose
+    url: jdbc:postgresql://postgres_db:5432/payroll_db
+    username: postgres
+    password: dev@dika
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  
+  # Konfigurasi RabbitMQ mengarah ke container 'rabbitmq_broker'
+  rabbitmq:
+    host: rabbitmq_broker
+    port: 5672
+    username: admin
+    password: admin123
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+
+app:
+  jwt:
+    secret: base64EncodedSecretKeyForPayrollApp2026ModernStackPayrollApp2026ModernStack
+    expiration: 86400000
+
+server:
+  port: 8080
+
+hris:
+  api:
+    employee:
+      data: https://dev.ptdika.com/dikaone/hrd/api/api/payroll/dataPayrollEmployee?type=employee
+      contract: https://dev.ptdika.com/dikaone/hrd/api/api/payroll/contractPayroll?type=employee
+    key: 4ad75498f665ec44c5b91e70c3cf6698
+    auth: Basic aHJkX2Rpa2EwMDE6QjNuZGgxTF4xMjEy
