@@ -51,4 +51,25 @@ public class MasterClient {
 
     @Column(name = "periode_payroll")
     private String periodePayroll;
+
+    @Column(name = "gaji")
+    private Double gaji;
+
+    @Column(name = "bpjs_kesehatan")
+    private String bpjsKesehatan;
+
+    @Column(name = "bp_jamsostek")
+    private String bpJamsostek;
+
+    @Column(name = "bpjs_pensiun")
+    private String bpjsPensiun;
+
+    @Column(name = "asuransi_kesehatan")
+    private String asuransiKesehatan;
+
+    @Column(name = "asuransi_kecelakaan")
+    private String asuransiKecelakaan;
+
+    @Column(name = "tunjangan")
+    private Double tunjangan;
 }

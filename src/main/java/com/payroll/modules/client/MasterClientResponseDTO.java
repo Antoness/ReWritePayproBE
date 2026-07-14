@@ -16,4 +16,11 @@ public class MasterClientResponseDTO {
     private String createdBy;
     private String status;
     private String keterangan;
+    private Double gaji;
+    private String bpjsKesehatan;
+    private String bpJamsostek;
+    private String bpjsPensiun;
+    private String asuransiKesehatan;
+    private String asuransiKecelakaan;
+    private Double tunjangan;
 }

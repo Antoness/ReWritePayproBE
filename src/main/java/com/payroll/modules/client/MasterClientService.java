@@ -49,7 +49,7 @@ public class MasterClientService {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT DISTINCT ms.id, ms.created_date, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, ");
         sql.append("ms.employee_type AS Employee_Type, TO_CHAR(ms.created_date, 'DD/MM/YYYY') AS Created_Date, TO_CHAR(ms.update_date, 'DD/MM/YYYY') AS Update_Date, ");
-        sql.append("ms.created_by AS Created_By, ms.approval AS Status ");
+        sql.append("ms.created_by AS Created_By, ms.approval AS Status, ms.gaji, ms.bpjs_kesehatan, ms.bp_jamsostek, ms.bpjs_pensiun, ms.asuransi_kesehatan, ms.asuransi_kecelakaan, ms.tunjangan ");
         sql.append("FROM master_salary ms ");
         sql.append("LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("LEFT JOIN master_pic mp ON mp.master_salary_id = ms.id ");
@@ -73,7 +73,7 @@ public class MasterClientService {
     public List<MasterClientResponseDTO> getStaffExportByFilter(Long userId, String fullname, String uplinerName, MasterClientSearchRequest request) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ");
-        sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
+        sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type, ms.gaji, ms.bpjs_kesehatan, ms.bp_jamsostek, ms.bpjs_pensiun, ms.asuransi_kesehatan, ms.asuransi_kecelakaan, ms.tunjangan ");
         sql.append("FROM master_salary ms ");
         sql.append("LEFT JOIN master_pic mp ON mp.master_salary_id = ms.id ");
         sql.append("LEFT JOIN users u ON u.id = ms.id_user ");
@@ -105,7 +105,7 @@ public class MasterClientService {
         
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ");
-        sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
+        sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type, ms.gaji, ms.bpjs_kesehatan, ms.bp_jamsostek, ms.bpjs_pensiun, ms.asuransi_kesehatan, ms.asuransi_kecelakaan, ms.tunjangan ");
         sql.append("FROM master_salary ms LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("WHERE ms.id IN (");
         
@@ -120,7 +120,7 @@ public class MasterClientService {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT DISTINCT ms.id, ms.created_date, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, ");
         sql.append("ms.employee_type AS Employee_Type, TO_CHAR(ms.created_date, 'DD/MM/YYYY') AS Created_Date, TO_CHAR(ms.update_date, 'DD/MM/YYYY') AS Update_Date, ");
-        sql.append("ms.created_by AS Created_By, ms.approval AS Status, CASE WHEN ms.approval='REQUEST' THEN ms.keterangan ELSE '' END AS Keterangan ");
+        sql.append("ms.created_by AS Created_By, ms.approval AS Status, CASE WHEN ms.approval='REQUEST' THEN ms.keterangan ELSE '' END AS Keterangan, ms.gaji, ms.bpjs_kesehatan, ms.bp_jamsostek, ms.bpjs_pensiun, ms.asuransi_kesehatan, ms.asuransi_kecelakaan, ms.tunjangan ");
         sql.append("FROM master_salary ms ");
         sql.append("WHERE (ms.approval = 'REQUEST' OR ms.approval = 'APPROVED' OR ms.approval = 'PROCESSED') ");
 
@@ -134,7 +134,7 @@ public class MasterClientService {
 
     public List<MasterClientResponseDTO> getSpvExportByFilter(String fullname, MasterClientSearchRequest request) {
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type, ms.gaji, ms.bpjs_kesehatan, ms.bp_jamsostek, ms.bpjs_pensiun, ms.asuransi_kesehatan, ms.asuransi_kecelakaan, ms.tunjangan ");
         sql.append("FROM master_salary ms ");
         sql.append("LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("LEFT JOIN master_upliner mup ON u.nik = mup.nik ");
@@ -165,7 +165,7 @@ public class MasterClientService {
         
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ROW_NUMBER() OVER (ORDER BY ms.division, ms.unit_name, ms.position, ms.branch, ms.employee_type ASC) AS No, ");
-        sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type ");
+        sql.append("ms.division AS Division, ms.unit_name AS Unit, ms.position AS Position, ms.branch AS Branch, UPPER(ms.employee_type) AS Employee_Type, ms.gaji, ms.bpjs_kesehatan, ms.bp_jamsostek, ms.bpjs_pensiun, ms.asuransi_kesehatan, ms.asuransi_kecelakaan, ms.tunjangan ");
         sql.append("FROM master_salary ms LEFT JOIN users u ON u.id = ms.id_user ");
         sql.append("WHERE ms.id IN (");
         
@@ -190,6 +190,13 @@ public class MasterClientService {
             dto.setUpdateDate(rs.getString("Update_Date"));
             dto.setCreatedBy(rs.getString("Created_By"));
             dto.setStatus(rs.getString("Status"));
+            dto.setGaji(rs.getDouble("gaji"));
+            dto.setBpjsKesehatan(rs.getString("bpjs_kesehatan"));
+            dto.setBpJamsostek(rs.getString("bp_jamsostek"));
+            dto.setBpjsPensiun(rs.getString("bpjs_pensiun"));
+            dto.setAsuransiKesehatan(rs.getString("asuransi_kesehatan"));
+            dto.setAsuransiKecelakaan(rs.getString("asuransi_kecelakaan"));
+            dto.setTunjangan(rs.getDouble("tunjangan"));
             return dto;
         }
     }
@@ -209,6 +216,13 @@ public class MasterClientService {
             dto.setCreatedBy(rs.getString("Created_By"));
             dto.setStatus(rs.getString("Status"));
             dto.setKeterangan(rs.getString("Keterangan"));
+            dto.setGaji(rs.getDouble("gaji"));
+            dto.setBpjsKesehatan(rs.getString("bpjs_kesehatan"));
+            dto.setBpJamsostek(rs.getString("bp_jamsostek"));
+            dto.setBpjsPensiun(rs.getString("bpjs_pensiun"));
+            dto.setAsuransiKesehatan(rs.getString("asuransi_kesehatan"));
+            dto.setAsuransiKecelakaan(rs.getString("asuransi_kecelakaan"));
+            dto.setTunjangan(rs.getDouble("tunjangan"));
             return dto;
         }
     }
@@ -223,6 +237,13 @@ public class MasterClientService {
             dto.setPosition(rs.getString("Position"));
             dto.setBranch(rs.getString("Branch"));
             dto.setEmployeeType(rs.getString("Employee_Type"));
+            dto.setGaji(rs.getDouble("gaji"));
+            dto.setBpjsKesehatan(rs.getString("bpjs_kesehatan"));
+            dto.setBpJamsostek(rs.getString("bp_jamsostek"));
+            dto.setBpjsPensiun(rs.getString("bpjs_pensiun"));
+            dto.setAsuransiKesehatan(rs.getString("asuransi_kesehatan"));
+            dto.setAsuransiKecelakaan(rs.getString("asuransi_kecelakaan"));
+            dto.setTunjangan(rs.getDouble("tunjangan"));
             return dto;
         }
     }

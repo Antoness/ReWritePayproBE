@@ -19,6 +19,7 @@ public class MasterEmployeeController {
 
     private final MasterEmployeeService masterEmployeeService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final HrisSyncService hrisSyncService;
 
     private String getUsernameFromToken(String token) {
         if (token == null || !token.startsWith("Bearer ")) {
@@ -43,6 +44,37 @@ public class MasterEmployeeController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(masterEmployeeService.findEmployeeData(search, division, unit, position, employeeType, branch, status, nationality, page, size));
+    }
+
+    @GetMapping("/cleanup-duplicates")
+    public ResponseEntity<String> cleanupDuplicates() {
+        String deleteSql = "DELETE FROM master_salary " +
+                           "WHERE id IN ( " +
+                           "  SELECT id FROM ( " +
+                           "    SELECT id, ROW_NUMBER() OVER ( " +
+                           "      PARTITION BY UPPER(COALESCE(division, '')), UPPER(COALESCE(unit_name, '')), UPPER(COALESCE(position, '')), UPPER(COALESCE(branch, '')), UPPER(COALESCE(employee_type, '')) " +
+                           "      ORDER BY id ASC " +
+                           "    ) AS rnum " +
+                           "    FROM master_salary " +
+                           "  ) t " +
+                           "  WHERE t.rnum > 1 " +
+                           ")";
+        org.springframework.jdbc.core.JdbcTemplate jdbcTemplate = getJdbcTemplateFromService();
+        if (jdbcTemplate != null) {
+            int deleted = jdbcTemplate.update(deleteSql);
+            return ResponseEntity.ok("Deleted " + deleted + " duplicates.");
+        }
+        return ResponseEntity.status(500).body("Failed to get JdbcTemplate");
+    }
+
+    private org.springframework.jdbc.core.JdbcTemplate getJdbcTemplateFromService() {
+        try {
+            java.lang.reflect.Field f = hrisSyncService.getClass().getDeclaredField("jdbcTemplate");
+            f.setAccessible(true);
+            return (org.springframework.jdbc.core.JdbcTemplate) f.get(hrisSyncService);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @GetMapping("/wna-list")
@@ -187,8 +219,9 @@ public class MasterEmployeeController {
     }
 
     @PostMapping("/sync-hris")
-    public ResponseEntity<Map<String, String>> syncHris() {
-        masterEmployeeService.syncHris();
+    public ResponseEntity<Map<String, String>> syncHris(@RequestHeader(value = "Authorization", required = false) String token) {
+        String username = getUsernameFromToken(token);
+        hrisSyncService.syncHrisData(username, java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MM-dd")));
         return ResponseEntity.ok(Map.of("message", "HRIS sync triggered successfully"));
     }
 
