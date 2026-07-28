@@ -72,4 +72,17 @@ public class MasterClient {
 
     @Column(name = "tunjangan")
     private Double tunjangan;
+
+    // Master Uang Kompensasi (PIC UK) Fields
+    @Column(name = "mode_uk")
+    private String modeUk;
+
+    @Column(name = "mfee_uk")
+    private Double mfeeUk;
+
+    @Column(name = "mfee_uk_old")
+    private Double mfeeUkOld;
+
+    @Column(name = "approval_mfee_uk")
+    private String approvalMfeeUk;
 }
