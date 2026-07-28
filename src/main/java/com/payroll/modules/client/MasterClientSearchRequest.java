@@ -11,5 +11,6 @@ public class MasterClientSearchRequest {
     private String position;
     private String branch;
     private String status;
+    private String employeeType;
     private List<Long> ids; // Used for export by checklist
 }
