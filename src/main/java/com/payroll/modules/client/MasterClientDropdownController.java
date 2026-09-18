@@ -6,9 +6,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import com.payroll.modules.master.PayrollComponentResponseDTO;
+import com.payroll.modules.master.PayrollComponentService;
+
 @RestController
 @RequestMapping("/api/master-client/dropdowns")
 public class MasterClientDropdownController {
+
+    @Autowired
+    private PayrollComponentService payrollComponentService;
 
     @Autowired
     private MasterClientDropdownService dropdownService;
@@ -60,6 +66,23 @@ public class MasterClientDropdownController {
     @GetMapping("/komponen-upah")
     public ResponseEntity<List<DropdownOptionDTO>> getKomponenUpah() {
         return ResponseEntity.ok(dropdownService.getKomponenUpah());
+    }
+
+    /**
+     * GET /api/master-client/dropdowns/payroll-components
+     * Returns MERGED list of allowances:
+     *   1. Base defaults from master_allowance (always shown)
+     *   2. PLUS payroll_components matching the given division/unit/position/employeeType filter
+     * Used by Master Client form to populate Tunjangan Tetap & Tidak Tetap dropdowns.
+     */
+    @GetMapping("/payroll-components")
+    public ResponseEntity<List<String>> getPayrollComponentsForClient(
+            @RequestParam(required = false, defaultValue = "") String division,
+            @RequestParam(required = false, defaultValue = "") String position,
+            @RequestParam(required = false, defaultValue = "") String unitName,
+            @RequestParam(required = false, defaultValue = "") String employeeType) {
+        return ResponseEntity.ok(
+                dropdownService.getAllowancesForClient(division, position, unitName, employeeType));
     }
 
     // Hardcoded endpoints

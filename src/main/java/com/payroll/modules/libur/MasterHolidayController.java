@@ -14,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/master-holiday")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class MasterHolidayController {
 
     @Autowired

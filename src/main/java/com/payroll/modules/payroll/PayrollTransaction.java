@@ -48,6 +48,10 @@ public class PayrollTransaction {
     @Column(name = "net_salary")
     private BigDecimal netSalary;
 
+    @Column(name = "company_id")
+    @Builder.Default
+    private Long companyId = 1L;
+
     @Column(name = "status_data", length = 50)
     private String statusData; // NEW, REQUEST_APPROVAL, APPROVED, RETURNED, PROCESSED, PAID
 }

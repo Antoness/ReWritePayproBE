@@ -4,7 +4,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CustomPasswordEncoder implements PasswordEncoder {
 
     private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
@@ -26,9 +28,14 @@ public class CustomPasswordEncoder implements PasswordEncoder {
             return bcrypt.matches(rawPassword, encodedPassword);
         }
 
-        // 2. Jika bukan BCrypt, maka kita anggap sebagai MD5 (Legacy dari sistem lama atau hasil reset massal)
+        // 2. Jika bukan BCrypt, cek MD5
         String rawMd5 = md5Hex(rawPassword.toString());
-        return rawMd5.equalsIgnoreCase(encodedPassword);
+        if (rawMd5.equalsIgnoreCase(encodedPassword)) {
+            return true;
+        }
+
+        // 3. Fallback plaintext comparison
+        return rawPassword.toString().equals(encodedPassword);
     }
 
     // Helper untuk generate MD5 Hex (sama dengan fungsi MD5() di MySQL)
