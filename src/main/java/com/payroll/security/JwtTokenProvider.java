@@ -1,63 +1,74 @@
 package com.payroll.security;
 
 import com.payroll.modules.user.User;
+import com.payroll.modules.role.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class JwtTokenProvider {
 
-    @Value("${app.jwt.secret:base64EncodedSecretKeyForPayrollApp2026ModernStack}")
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtTokenProvider.class);
+
+    @Value("${app.jwt.secret}")
     private String secretKey;
 
-    @Value("${app.jwt.expiration:86400000}")
-    private long validityInMilliseconds;
+    @Value("${app.jwt.expiration}")
+    private long validityInMs;
 
     private SecretKey key;
 
     @PostConstruct
-    protected void init() {
-        key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    public void init() {
+        key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     public String createToken(User user) {
-        Map<String, Object> claimsMap = new HashMap<>();
-        claimsMap.put("position", user.getPosition());
-        claimsMap.put("privilage", user.getPrivilage());
-        claimsMap.put("nik", user.getNik());
-        claimsMap.put("fullName", user.getFullName());
-        claimsMap.put("division", user.getDivision());
-        claimsMap.put("leader", user.getLeader());
-
         Date now = new Date();
-        Date validity = new Date(now.getTime() + validityInMilliseconds);
+        Date expiry = new Date(now.getTime() + validityInMs);
+
+        Set<String> authorities = new HashSet<>();
+        if (user.getRoles() != null) {
+            for (Role role : user.getRoles()) {
+                authorities.add("ROLE_" + role.getName().toUpperCase());
+            }
+        }
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("nik", user.getNik());
+        claims.put("username", user.getUsername());
+        claims.put("fullName", user.getFullName());
+        claims.put("position", user.getPosition());
+        claims.put("privilege", user.getPrivilage());
+        claims.put("businessType", user.getBusinessType());
+        claims.put("companyId", user.getCompanyId() != null ? user.getCompanyId() : 1L);
+        claims.put("authorities", authorities);
 
         return Jwts.builder()
-                .subject(user.getUsername())
-                .claims(claimsMap)
+                .claims(claims)
+                .subject(user.getId() != null ? user.getId().toString() : user.getUsername())
                 .issuedAt(now)
-                .expiration(validity)
+                .expiration(expiry)
                 .signWith(key)
                 .compact();
     }
 
-    public Authentication getAuthentication(String token) {
-        String username = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(username, "", new ArrayList<>());
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    public String getUsernameFromToken(String token) {
+        return getClaims(token).get("username", String.class);
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public boolean validateToken(String token) {
@@ -65,11 +76,8 @@ public class JwtTokenProvider {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
             return false;
         }
-    }
-
-    public Claims getClaims(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 }

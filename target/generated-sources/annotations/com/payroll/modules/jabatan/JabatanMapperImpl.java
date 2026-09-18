@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-28T10:10:47+0700",
-    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
+    date = "2026-09-17T17:34:08+0700",
+    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 23.0.2 (Homebrew)"
 )
 @Component
 public class JabatanMapperImpl implements JabatanMapper {
@@ -21,11 +21,11 @@ public class JabatanMapperImpl implements JabatanMapper {
 
         JabatanDTO jabatanDTO = new JabatanDTO();
 
-        jabatanDTO.setDeskripsi( entity.getDeskripsi() );
-        jabatanDTO.setGajiPokok( entity.getGajiPokok() );
         jabatanDTO.setId( entity.getId() );
         jabatanDTO.setKodeJabatan( entity.getKodeJabatan() );
         jabatanDTO.setNamaJabatan( entity.getNamaJabatan() );
+        jabatanDTO.setDeskripsi( entity.getDeskripsi() );
+        jabatanDTO.setGajiPokok( entity.getGajiPokok() );
 
         return jabatanDTO;
     }
@@ -38,11 +38,11 @@ public class JabatanMapperImpl implements JabatanMapper {
 
         Jabatan.JabatanBuilder jabatan = Jabatan.builder();
 
-        jabatan.deskripsi( dto.getDeskripsi() );
-        jabatan.gajiPokok( dto.getGajiPokok() );
         jabatan.id( dto.getId() );
         jabatan.kodeJabatan( dto.getKodeJabatan() );
         jabatan.namaJabatan( dto.getNamaJabatan() );
+        jabatan.deskripsi( dto.getDeskripsi() );
+        jabatan.gajiPokok( dto.getGajiPokok() );
 
         return jabatan.build();
     }
@@ -67,10 +67,10 @@ public class JabatanMapperImpl implements JabatanMapper {
             return;
         }
 
-        entity.setDeskripsi( dto.getDeskripsi() );
-        entity.setGajiPokok( dto.getGajiPokok() );
         entity.setId( dto.getId() );
         entity.setKodeJabatan( dto.getKodeJabatan() );
         entity.setNamaJabatan( dto.getNamaJabatan() );
+        entity.setDeskripsi( dto.getDeskripsi() );
+        entity.setGajiPokok( dto.getGajiPokok() );
     }
 }

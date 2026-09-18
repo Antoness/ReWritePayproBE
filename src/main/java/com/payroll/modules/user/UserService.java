@@ -22,6 +22,37 @@ public class UserService {
     private final MasterUplinerRepository masterUplinerRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @jakarta.annotation.PostConstruct
+    public void seedDefaultUsers() {
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            User admin = User.builder()
+                    .nik("ADM001")
+                    .fullName("Administrator")
+                    .email("admin@ptdika.com")
+                    .username("admin")
+                    .password(passwordEncoder.encode("admin123"))
+                    .position("SUPER_ADMIN")
+                    .division("IT")
+                    .userStatus("ACTIVE")
+                    .build();
+            userRepository.save(admin);
+        }
+
+        if (userRepository.findByUsername("staffkk").isEmpty()) {
+            User staff = User.builder()
+                    .nik("STF001")
+                    .fullName("Staff KK Jasa")
+                    .email("staffkk@ptdika.com")
+                    .username("staffkk")
+                    .password(passwordEncoder.encode("password"))
+                    .position("Staff (Kertas Kerja Jasa)")
+                    .division("PAYROLL")
+                    .userStatus("ACTIVE")
+                    .build();
+            userRepository.save(staff);
+        }
+    }
+
     @Transactional(readOnly = true)
     public Page<UserListResponse> getUserList(String search, Pageable pageable) {
         Page<Object[]> results = userRepository.findUserListNative(search, pageable);

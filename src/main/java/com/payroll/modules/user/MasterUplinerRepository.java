@@ -13,6 +13,9 @@ public interface MasterUplinerRepository extends JpaRepository<MasterUpliner, In
     @Query(value = "SELECT DISTINCT nik_upliner, nama_upliner FROM master_upliner WHERE nik = :nik", nativeQuery = true)
     List<Object[]> findExistingUpliners(@Param("nik") String nik);
     
+    @Query(value = "SELECT DISTINCT nik FROM master_upliner WHERE nik_upliner = :nikUpliner", nativeQuery = true)
+    List<String> findDownlinersByNikUpliner(@Param("nikUpliner") String nikUpliner);
+
     boolean existsByNikAndNikUpliner(String nik, String nikUpliner);
     
     void deleteByNikAndNikUpliner(String nik, String nikUpliner);

@@ -47,6 +47,10 @@ public class Employee {
     @Column(name = "branch_code", length = 50)
     private String branchCode;
 
+    @Column(name = "company_id")
+    @Builder.Default
+    private Long companyId = 1L;
+
     @Column(name = "is_active")
     private Boolean isActive;
 
